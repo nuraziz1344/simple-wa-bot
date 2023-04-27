@@ -51,8 +51,8 @@ client.on('ready', () => {
 
 client.on('message', async msg => {
   try {
-      if (msg.body == 'ping') {
-          msg.reply('pong');
+      if (msg.body.test(/^((\.)|(ping)|(test?))$/i) && !msg.hasQuotedMsg) {
+          msg.reply(msg.body);
       } else if(msg.type == MessageTypes.IMAGE || MessageTypes.VIDEO || MessageTypes.DOCUMENT) {
           const media = await msg.downloadMedia()
           if(media.mimetype.startsWith('image') || media.mimetype.startsWith('video')){

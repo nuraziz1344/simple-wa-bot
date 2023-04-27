@@ -54,7 +54,7 @@ client.on('message', async msg => {
         msg.reply('pong');
     } else if(msg.type == 'image') {
         const media = await msg.downloadMedia()
-        client.sendMessage(msg.id.remote, media, { sendMediaAsSticker: true, stickerAuthor: "Created By", stickerName: "CRazyzBOT", quotedMessageId:msg.id.id });
+        msg.reply(media, msg.id.remote, { sendMediaAsSticker: true, stickerAuthor: "Created By", stickerName: "CRazyzBOT"});
     } else {
       console.log(msg)
     }

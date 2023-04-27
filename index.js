@@ -50,14 +50,23 @@ client.on('ready', () => {
 });
 
 client.on('message', async msg => {
-    if (msg.body == 'ping') {
-        msg.reply('pong');
-    } else if(msg.type == 'image') {
-        const media = await msg.downloadMedia()
-        msg.reply(media, msg.id.remote, { sendMediaAsSticker: true, stickerAuthor: "Created By", stickerName: "CRazyzBOT"});
-    } else {
-      console.log(msg)
-    }
+  try {
+      if (msg.body == 'ping') {
+          msg.reply('pong');
+      } else if(msg.type == MessageTypes.IMAGE || MessageTypes.VIDEO || MessageTypes.DOCUMENT) {
+          const media = await msg.downloadMedia()
+          if(media.mimetype.startsWith('image') || media.mimetype.startsWith('video')){
+            msg.reply(media, msg.id.remote, { sendMediaAsSticker: true, stickerAuthor: "Created By", stickerName: "CRazyzBOT"});
+          }
+      } else if(msg.type == MessageTypes.STICKER){
+          const media = await msg.downloadMedia()
+          msg.reply(media, msg.id.remote)
+      } else {
+          console.log(msg)
+      }
+  } catch (error) {
+      console.error(error) 
+  }
 });
 
 client.initialize();

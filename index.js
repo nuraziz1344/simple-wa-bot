@@ -62,8 +62,8 @@ client.on('message', async msg => {
   try {
       if (/^((\.)|(ping)|(test?))$/i.test(msg.body) && !msg.hasQuotedMsg) {
           msg.reply(msg.body);
-      } else if(msg.hasMedia && (msg.type == MessageTypes.IMAGE || MessageTypes.VIDEO || MessageTypes.DOCUMENT)) {
-          console.log('%s image to sticker', msg.type)
+      } else if(msg.hasMedia && (msg.type == MessageTypes.IMAGE || msg.type == MessageTypes.VIDEO || msg.type == MessageTypes.DOCUMENT)) {
+          console.log('%s to sticker', msg.type)
           const media = await msg.downloadMedia()
           if(media.mimetype.startsWith('image') || media.mimetype.startsWith('video')){
             msg.reply(media, msg.id.remote, { sendMediaAsSticker: true, stickerName: "Created By", stickerAuthor: "CRazyzBOT"});
@@ -72,7 +72,7 @@ client.on('message', async msg => {
           const media = await msg.downloadMedia()
           if(!msg.rawData?.isAnimated){
             const s = await sharp(Buffer.from(media.data, 'base64')).toFormat('png').toBuffer()
-            msg.reply(new MessageMedia('image/png', s.toString('base64')), msg.id.remote)
+            msg.reply(new MessageMedia('image/png', s.toString('base64')), msg.id.remote, {sendMediaAsSticker:false})
           }
       } else {
           console.log(msg)

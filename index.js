@@ -1,8 +1,7 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia, MessageTypes } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal')
 const { resolve } = require('path')
 const { schedule } = require('node-cron')
-const rand = require('random-string')
 
 console.log('Starting...')
 const client = new Client({
@@ -36,7 +35,6 @@ client.on('loading_screen', (percent, message) => {
 });
 
 client.on('qr', (qr) => {
-    // Generate and scan this code with your phone
     console.log('scan this QRCode!')
     qrcode.generate(qr, {small: true}, function (qrcode) {
       console.log(qrcode)
@@ -45,20 +43,19 @@ client.on('qr', (qr) => {
 
 client.on('ready', () => {
     console.log('Connected!');
+    schedule('* * * * *', ()=>{
+      const usage = (process.memoryUsage().rss/1048576).toFixed(1)
+      console.log('RAM usage: %sMiB', usage)
+    })
 });
 
 client.on('message', async msg => {
     if (msg.body == 'ping') {
         msg.reply('pong');
     } else if(msg.type == 'image') {
-        const media = await msg.downloadMedia().then(e=>e.data)
-        console.log(media)
+        const media = await msg.downloadMedia()
+        client.sendMessage(msg.id.remote, media, { sendMediaAsSticker: true, stickerAuthor: "WWEBJS", stickerName: "My Sticker" });
     }
 });
 
 client.initialize();
-
-schedule('* * * * *', ()=>{
-  const usage = (process.memoryUsage().rss/1048576).toFixed(1)
-  console.log('RAM usage: %sMiB', usage)
-})

@@ -1,7 +1,8 @@
-const { Client, LocalAuth, MessageMedia, MessageTypes } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageTypes, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal')
 const { resolve } = require('path')
 const { schedule } = require('node-cron')
+const sharp = require('sharp')
 
 console.log('Starting...')
 const client = new Client({
@@ -53,14 +54,16 @@ client.on('message', async msg => {
   try {
       if (msg.body.test(/^((\.)|(ping)|(test?))$/i) && !msg.hasQuotedMsg) {
           msg.reply(msg.body);
-      } else if(msg.type == MessageTypes.IMAGE || MessageTypes.VIDEO || MessageTypes.DOCUMENT) {
+      } else if(msg.hasMedia && (msg.type == MessageTypes.IMAGE || MessageTypes.VIDEO || MessageTypes.DOCUMENT)) {
+          console.log('%s image to sticker', msg.type)
           const media = await msg.downloadMedia()
           if(media.mimetype.startsWith('image') || media.mimetype.startsWith('video')){
-            msg.reply(media, msg.id.remote, { sendMediaAsSticker: true, stickerAuthor: "Created By", stickerName: "CRazyzBOT"});
+            msg.reply(media, msg.id.remote, { sendMediaAsSticker: true, stickerName: "Created By", stickerAuthor: "CRazyzBOT"});
           }
-      } else if(msg.type == MessageTypes.STICKER){
+      } else if(msg.hasMedia && msg.type == MessageTypes.STICKER){
           const media = await msg.downloadMedia()
-          msg.reply(media, msg.id.remote)
+          const s = await sharp(Buffer.from(media.data, 'base64')).toFormat('png').toBuffer()
+          msg.reply(new MessageMedia('image/png', s.toString('base64')), msg.id.remote)
       } else {
           console.log(msg)
       }

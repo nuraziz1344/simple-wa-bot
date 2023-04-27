@@ -3,8 +3,16 @@ const qrcode = require('qrcode-terminal')
 const { resolve } = require('path')
 const { schedule } = require('node-cron')
 const sharp = require('sharp')
+const express = require('express')()
 
-console.log('Starting...')
+express.get('/', (req, res)=>{
+  res.send('ok')
+})
+
+express.listen(3000, '0.0.0.0', ()=>{
+  console.log('Starting...')
+})
+
 const client = new Client({
   puppeteer: {
     userDataDir: resolve('.puppeteer'),
@@ -52,7 +60,7 @@ client.on('ready', () => {
 
 client.on('message', async msg => {
   try {
-      if (msg.body.test(/^((\.)|(ping)|(test?))$/i) && !msg.hasQuotedMsg) {
+      if (/^((\.)|(ping)|(test?))$/i.test(msg.body) && !msg.hasQuotedMsg) {
           msg.reply(msg.body);
       } else if(msg.hasMedia && (msg.type == MessageTypes.IMAGE || MessageTypes.VIDEO || MessageTypes.DOCUMENT)) {
           console.log('%s image to sticker', msg.type)
@@ -62,8 +70,10 @@ client.on('message', async msg => {
           }
       } else if(msg.hasMedia && msg.type == MessageTypes.STICKER){
           const media = await msg.downloadMedia()
-          const s = await sharp(Buffer.from(media.data, 'base64')).toFormat('png').toBuffer()
-          msg.reply(new MessageMedia('image/png', s.toString('base64')), msg.id.remote)
+          if(!msg.rawData?.isAnimated){
+            const s = await sharp(Buffer.from(media.data, 'base64')).toFormat('png').toBuffer()
+            msg.reply(new MessageMedia('image/png', s.toString('base64')), msg.id.remote)
+          }
       } else {
           console.log(msg)
       }

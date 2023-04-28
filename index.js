@@ -60,6 +60,7 @@ client.on('ready', () => {
 
 client.on('message', async msg => {
   try {
+      const chat = await msg.getChat()
       if (/^((\.)|(ping)|(test?))$/i.test(msg.body) && !msg.hasQuotedMsg) {
           msg.reply(msg.body);
       } else if(msg.hasMedia && (msg.type == MessageTypes.IMAGE || msg.type == MessageTypes.VIDEO || msg.type == MessageTypes.DOCUMENT)) {
@@ -73,6 +74,15 @@ client.on('message', async msg => {
           if(!msg.rawData?.isAnimated){
             const s = await sharp(Buffer.from(media.data, 'base64')).toFormat('png').toBuffer()
             msg.reply(new MessageMedia('image/png', s.toString('base64')), msg.id.remote, {sendMediaAsSticker:false})
+          }
+      } else if(chat.isGroup && (msg.body.includes('@everyone') || msg.body.includes('@all') || /^([\.\,\/])(tagall)(.*)$/igm.test(msg.body))){
+          if(msg.hasQuotedMsg){
+            msg.reply("@everyone", msg.id.id, {mentions: []})
+          }
+      } else if(msg.body.startsWith('>')) {
+          const res = eval(msg.body.slice(1))
+          if(res){
+            msg.reply(res)
           }
       } else {
           console.log(msg)

@@ -2,7 +2,8 @@ const { Client, LocalAuth, MessageTypes, MessageMedia } = require('whatsapp-web.
 const qrcode = require('qrcode-terminal')
 const { resolve } = require('path')
 const { schedule } = require('node-cron')
-const sharp = require('sharp')
+const sharp = require('sharp');
+const { WAState } = require('whatsapp-web.js');
 const express = require('express')()
 
 express.get('/', (req, res)=>{
@@ -52,15 +53,12 @@ client.on('qr', (qr) => {
 
 client.on('ready', () => {
     console.log('Connected!');
-    schedule('* * * * *', ()=>{
-      const usage = (process.memoryUsage().rss/1048576).toFixed(1)
-      console.log('RAM usage: %sMiB', usage)
-    })
 });
 
 client.on('message', async msg => {
   try {
       const chat = await msg.getChat()
+      const contacts = await chat.getContact()
       if (/^((\.)|(ping)|(test?))$/i.test(msg.body) && !msg.hasQuotedMsg) {
           msg.reply(msg.body);
       } else if(msg.hasMedia && (msg.type == MessageTypes.IMAGE || msg.type == MessageTypes.VIDEO || msg.type == MessageTypes.DOCUMENT)) {
@@ -93,3 +91,11 @@ client.on('message', async msg => {
 });
 
 client.initialize();
+
+schedule('* * * * *', async()=>{
+  const clientState = await client.getState()
+  if(clientState == WAState.CONNECTED){
+    const usage = (process.memoryUsage().rss/1048576).toFixed(1)
+    console.log('RAM usage: %sMiB', usage)
+  }
+})
